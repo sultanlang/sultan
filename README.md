@@ -20,7 +20,7 @@ eval $(opam env)
 opam install uutf
 ```
 For ARM system and Mac os
-```sh
+```bash
 #Install Homebrew if you haven't already:
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
