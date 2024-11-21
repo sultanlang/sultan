@@ -3,11 +3,11 @@ A universal, multi-paradigm programming language designed for simplicity, flexib
 
 # Building Sultan lang
 Before running 
-```
+```sh
 ./build.sh
 ```
 make sure you have installed for non ARM system or Mac os
-```
+```sh
 #install ocaml
 sudo apt install ocaml
 #install ocaml opam
@@ -20,7 +20,7 @@ eval $(opam env)
 opam install uutf
 ```
 For ARM system and Mac os
-```
+```sh
 #Install Homebrew if you haven't already:
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
@@ -36,25 +36,25 @@ eval $(opam env)
 opam install uutf
 ```
 ones thats done then run
-```
+```sh
 ./build.sh
 ```
 
 
 
 # Use Sultanc
-```
+```sh
 cd compiler
 ```
 You will have ./sultanc 
 sultan files are .sn 
-```
+```sh
 # use case ./sultanc <filename.sn>
 ./sultanc example.sn
 ```
 
 for more example on how sultanc look like check folder
-```
+```sh
 cd docs
 ```
 
