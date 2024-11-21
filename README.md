@@ -53,10 +53,6 @@ sultan files are .sn
 ./sultanc example.sn
 ```
 
-for more example on how sultanc look like check folder
-```sh
-cd docs
-```
 
 
 
