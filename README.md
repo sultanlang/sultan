@@ -54,9 +54,9 @@ sultan files are .sn
 ```
 
 ```
-#it was an example of sultanc
+#it is an example of sultanc
 let: x int :=1;
-# in for beta testing we foudn this better will be
+# in for beta testing we found this better will be
 let x: int =1;
 # and using the : for reassignment for example
 # x is 1
@@ -67,6 +67,8 @@ x:=2;
 let x: int const=1;
 #which the vaule x is immutable be declaring const. 
 # this are the goals for the next beta testing.
+# so we can do for mutable
+let x: int 1;
 ```
 
 
