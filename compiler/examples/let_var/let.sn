@@ -1,0 +1,17 @@
+import stdio;
+
+
+
+def main(){
+
+    // This how let is implemented in the compiler
+    // let name: type mutability = value;
+    // by default, the mutability is mutable unless specified with const keyword
+    let x: i8 = 1;
+    let t: i8 const = 2;
+
+
+    print(x);
+    print(t);
+
+};

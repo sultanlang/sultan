@@ -1,0 +1,10 @@
+
+def main (){
+  enum myenum {
+    A,
+    B,
+    C
+  };
+  
+  return 0;
+};

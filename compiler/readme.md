@@ -1,7 +1,7 @@
 
-most have 
-ocamlc lang
-opam install uutf
+must have 
+ocamlc clang
+
 
 
 thats all the needed to run sultanc

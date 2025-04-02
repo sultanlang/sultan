@@ -1,0 +1,20 @@
+
+
+import io;
+
+
+def matching() void {
+    let i: i8 = 0;
+    // Reassigning i
+    let i := 1;
+
+    match i with
+    | 0 -> print("Zero");
+    | _ -> print("One");
+}
+
+def main(){
+    matching();
+
+    return 0;
+}

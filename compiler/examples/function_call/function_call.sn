@@ -1,0 +1,35 @@
+
+
+import stdio;
+
+
+
+// we call the the function as void since it does not return anything
+// the function is local  
+// if we want to make it global we can use keyword pub
+def local() void {
+    let x: i8 = 1;
+    let t: i8 const = 2;
+    print(x);
+    print(t);
+
+};
+
+pub def global() void {
+    let x: i8 = 3;
+    let t: i8 const = 4;
+    print(x);
+    print(t);
+
+};
+// def is used to define a function
+// scope def name (args) function_type {body}
+// function_type type can be void check trigger the function as void function in c 
+// but if no void the function by default is int
+// the return type is void if the function does not return anything
+// and since it is named main by default scope is pubic
+
+def main(){
+    local();
+    return 0;
+};

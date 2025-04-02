@@ -1,0 +1,15 @@
+import stdio;
+
+
+// def is used to define a function
+// scope def name (args) function_type {body}
+// function_type type can be void check trigger the function as void function in c 
+// but if no void the function by default is int
+// the return type is void if the function does not return anything
+// and since it is named main by default scope is pubic
+
+
+def main(){
+    print("Hello Sultanc");
+    return 0;
+};

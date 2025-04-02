@@ -4,7 +4,7 @@ A universal, multi-paradigm programming language designed for simplicity, flexib
 # Building Sultan lang
 Before running 
 ```sh
-./build.sh
+./boot.sh
 ```
 make sure you have installed for non ARM system or Mac os
 ```sh
@@ -16,8 +16,7 @@ sudo apt install opam
 opam init
 #set env
 eval $(opam env)
-# install utf8
-opam install uutf
+
 ```
 For ARM system and Mac os
 ```sh
@@ -32,12 +31,12 @@ brew install opam
 opam init
 # set env
 eval $(opam env)
-# install utf8
-opam install uutf
+
+
 ```
 ones thats done then run
 ```sh
-./build.sh
+./boot.sh
 ```
 
 
@@ -52,26 +51,4 @@ sultan files are .sn
 # use case ./sultanc <filename.sn>
 ./sultanc example.sn
 ```
-
-```
-#it is an example of sultanc
-let: x int :=1;
-# in for beta testing we found this better will be
-let x: int =1;
-# and using the : for reassignment for example
-# x is 1
-let x: int = 1;
-# reassignment x to 2
-x:=2;
-#  why is that need to change? simply to to make  the reassignment easier, and we can do
-let x: int const=1;
-#which the vaule x is immutable be declaring const. 
-# this are the goals for the next beta testing.
-# so we can do for mutable
-let x: int 1;
-```
-
-
-
-
 

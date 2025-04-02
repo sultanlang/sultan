@@ -1,134 +1,206 @@
-open Symboltable
+type position = { line: int; column: int }
+type modules =
+  | Filename of string
 
-type expression =
+
+type scope =
+  | Global of int 
+  | Local of int 
+;;
+
+type true_or_false =
+  | True 
+  | False
+;;
+
+
+type machine_types =
+  | I8 
+  | I16
+  | I32
+  | I64
+  | U8
+  | U16
+  | U32
+  | U64
+  | F32
+  | F64
+  | Bool 
+  | Char
+  | String
+  | List of machine_types
+  | Any_type 
+  | Void
+  | Unit
+  | Tuple 
+  | None
+;;
+
+
+type mutability =
+  | Mutable
+  | Immutable
+;;
+
+
+
+type binary_operator =
+  | Add                     (* + *)
+  | Subtract                (* - *)
+  | Multiply                (* * *)
+  | Divide                  (* / *)
+  | Equal                   (* == *)
+  | Less_than               (* < *)
+  | Greater_than            (* > *)
+  | Less_than_or_equal      (* <= *)
+  | Greater_than_or_equal   (* >= *)
+
+
+
+
+
+
+
+  | Not_equal               (* != *)
+  | And                     (* && *)
+  | Or                      (* || *)
+  | Modulus                 (* % *)
+  | Bitwise_and             (* & *)
+  | Bitwise_or              (* | *)
+  | Bitwise_xor             (* ^ *)
+  | Bitwise_not             (* ~ *)
+  | Shift_left              (* << *)
+  | Shift_right             (* >> *)
+  | Assignment              (* = *)
+  | Add_assignment          (* += *)
+  | Subtract_assignment     (* -= *)
+  | Multiply_assignment     (* *= *)
+  | Divide_assignment       (* /= *)
+  | Modulus_assignment      (* %= *)
+  | Bitwise_and_assignment  (* &= *)
+  | Bitwise_or_assignment   (* |= *)
+  | Bitwise_xor_assignment  (* ^= *)
+  | Shift_left_assignment   (* <<= *)
+  | Shift_right_assignment  (* >>= *)
+  | Comma                   (* , *)
+  | Dot                     (* . *)
+  | Arrow                   (* -> *)
+
+;;
+type sultanc_types = 
+  | StringLiteral of string
+  | CharLiteral of char
   | IntLiteral of int
   | FloatLiteral of float
-  | StringLiteral of string
   | BoolLiteral of bool
-  | Void
-  | CharLiteral of char
+  
+  
+;;
+
+type expression = 
+  | Types of sultanc_types
   | Identifier of string
-  | Binop of binop * expression * expression
-  | Unop of unop * expression
-  | ListLiteral of expression list
+  | Binary of expression list * binary_operator
+  (* | NameSpace of string * expression *)
+  | Function_call of string * expression list
+  | Lists of expression list
   | Range of expression * expression
-  | ErrorExpression of string
-  | DictLiteral of (expression * expression) list
-  | TupleLiteral of expression list
-  (* | Functioncall of string * expression list *)
+  | Fstring of string * expression list
   
-
-
-
-
-
-and statement =
-  | FunctionDef of string * (string * string option) list * statement list 
-  | Return of expression
-  | ReturnMultiple of expression list
-  | PrintInput of expression
-  | PrintOutputSingle of expression
-  | PrintOutputDouble of expression * expression
-  | If of expression * statement list
-  | IfElse of expression * statement list * statement list
-  | Else of statement list
-  | ForLoopRange of string * expression * statement list
-  | ForLoopClassic of string * expression * expression * expression * statement list
-  | Import of string
-  | Assignment of string * expression * expression
-  | LetConstBinding of string * expression option * expression
-  | LetVarBinding of string * expression option * expression
-  | LetListBinding of string * expression option * expression
-  | LetUninitializedBinding of string * expression option * expression
-  | ErrorStatement of string
-  | Functioncall of string * expression list
-  | LetFunctionBinding of string * (string * string option) list * statement list
-  | TryCatch of statement list * string* statement list
-  | Match of expression * (expression * statement list) list
+;;
   
+  
+type has_return =
+| Has_return of true_or_false
 
 
-and binop =
-  | Plus
-  | Minus
-  | Times
-  | Div
-  | Equals
-  | NotEquals
-  | GreaterThan
-  | LessThan
+;;
+type parameters = (string * machine_types * bool) list
 
-and unop =
-  | UMinus
-  | Abs
-  | Sqrt
-  | Cbrt
-  | Exp
-  | Exp2
-  | Log
-  | Log10
-  | Log2
-  | Cos
-  | Sin
-  | Tan
-  | Acos
-  | Asin
-  | Atan
-  | Cosh
-  | Sinh
-  | Tanh
-  | Acosh
-  | Asinh
-  | Atanh
-  | Erf
-  | Erfc
-  | Ceil
-  | Floor
-  | Round
-  | Trunc
+;;
+
+
+type statements =
+| Expression of expression list * position
+| Print of expression * position
+| Let_var of string * machine_types* mutability * statements list * position
+
+| Return of expression * position
+| Import of string * position
+| Def of  scope * string * parameters * has_return* statements list * position
+| If_Else of expression * statements list * statements list * position
+
+| While of expression * statements list * position
+| For of expression * expression * expression * statements list * position
+
+| Match of string * (expression * statements list) list * position
+(* | Match of string * (expression * statements list) list * position *)
+| Reassign of string * expression * position
+| Enum of string * statements list * position
+| Struct of string * (string * machine_types) list * position
 
   
-  let rec reduce_expression_to_object_ids = function
-    | IntLiteral _ | FloatLiteral _ | StringLiteral _ | BoolLiteral _ | CharLiteral _ -> []
-    | Void -> []
-    | Identifier id -> [id]
-   
-    | Binop (_, e1, e2) -> List.concat [reduce_expression_to_object_ids e1; reduce_expression_to_object_ids e2]
-    | Unop (_, e) -> reduce_expression_to_object_ids e
-    | ListLiteral exprs -> List.concat (List.map reduce_expression_to_object_ids exprs)
-    | Range (e1, e2) -> List.concat [reduce_expression_to_object_ids e1; reduce_expression_to_object_ids e2]
-    | ErrorExpression _ -> []
-    | DictLiteral entries ->
-      List.concat (List.map (fun (k, v) -> List.concat [reduce_expression_to_object_ids k; reduce_expression_to_object_ids v]) entries)
-    | TupleLiteral exprs -> List.concat (List.map reduce_expression_to_object_ids exprs)
-    (* | Functioncall (_, args) -> List.concat (List.map reduce_expression_to_object_ids args) *)
-   
+  
+;;
 
 
-and reduce_statement_to_object_ids = function
-  | FunctionDef (_, _, body) -> List.concat (List.map reduce_statement_to_object_ids body)
-  | Return expr -> reduce_expression_to_object_ids expr
-  | ReturnMultiple exprs -> List.concat (List.map reduce_expression_to_object_ids exprs)
-  | LetListBinding (id, e1, e2) -> id :: (match e1 with Some e -> reduce_expression_to_object_ids e | None -> []) @ reduce_expression_to_object_ids e2
-  | LetConstBinding (_, e1, e2) -> (match e1 with Some e -> reduce_expression_to_object_ids e | None -> []) @ reduce_expression_to_object_ids e2
-  | LetVarBinding (_, e1, e2) -> (match e1 with Some e -> reduce_expression_to_object_ids e | None -> []) @ reduce_expression_to_object_ids e2
-  | LetUninitializedBinding (_, e1, e2) -> (match e1 with Some e -> reduce_expression_to_object_ids e | None -> []) @ reduce_expression_to_object_ids e2
-  | PrintInput expr -> reduce_expression_to_object_ids expr
-  | PrintOutputSingle expr -> reduce_expression_to_object_ids expr
-  | PrintOutputDouble (expr1, expr2) -> List.concat [reduce_expression_to_object_ids expr1; reduce_expression_to_object_ids expr2]
-  | If (cond, then_exprs) -> List.concat [reduce_expression_to_object_ids cond; List.concat (List.map reduce_statement_to_object_ids then_exprs)]
-  | IfElse (cond, then_exprs, else_exprs) -> List.concat [reduce_expression_to_object_ids cond; List.concat (List.map reduce_statement_to_object_ids then_exprs); List.concat (List.map reduce_statement_to_object_ids else_exprs)]
-  | Else exprs -> List.concat (List.map reduce_statement_to_object_ids exprs)
-  | ForLoopRange (_, start_expr, body_exprs) -> List.concat [reduce_expression_to_object_ids start_expr; List.concat (List.map reduce_statement_to_object_ids body_exprs)]
-  | ForLoopClassic (_, start_expr, end_expr, step_expr, body_exprs) -> List.concat [reduce_expression_to_object_ids start_expr; reduce_expression_to_object_ids end_expr; reduce_expression_to_object_ids step_expr; List.concat (List.map reduce_statement_to_object_ids body_exprs)]
-  | Assignment (_, e1, e2) -> List.concat [reduce_expression_to_object_ids e1; reduce_expression_to_object_ids e2]
-  | ErrorStatement _ -> []
-  | Import _ -> []
-  | Functioncall (_, args) -> List.concat (List.map reduce_expression_to_object_ids args)
-  | LetFunctionBinding (_, _, body) -> List.concat (List.map reduce_statement_to_object_ids body)
-  | TryCatch (try_exprs, _, catch_exprs) -> List.concat [List.concat (List.map reduce_statement_to_object_ids try_exprs); List.concat (List.map reduce_statement_to_object_ids catch_exprs)]
-  | Match (expr, cases) -> List.concat [reduce_expression_to_object_ids expr; List.concat (List.map (fun (k, v) -> List.concat [reduce_expression_to_object_ids k; List.concat (List.map reduce_statement_to_object_ids v)]) cases)]
 
 
+
+let reduce_scope = function
+  | Global n -> n
+  | Local n -> n
+;;
+
+
+let rec reduce_sultanc_types = function 
+  | StringLiteral s -> StringLiteral s
+  | CharLiteral c -> CharLiteral c
+  | IntLiteral i -> IntLiteral i
+  | FloatLiteral f -> FloatLiteral f
+  | BoolLiteral b -> BoolLiteral b
+  (* | ListLiteral lst -> ListLiteral (List.map reduce_sultanc_types lst) *)
+;;
+
+let rec reduce_expression = function
+  | Lists expressions -> Lists (List.map reduce_expression expressions)
+  | Range (start, end_) ->
+    Range (reduce_expression start, reduce_expression end_)
+  | Identifier id -> Identifier id
+  | Binary (expressions, operations) ->
+    let reduced_exprs = List.map reduce_expression expressions in
+    Binary (reduced_exprs, operations)
+  | Types sultanc_type -> Types (reduce_sultanc_types sultanc_type)
+  | Function_call (id, expressions) ->
+    let reduced_exprs = List.map reduce_expression expressions in
+    Function_call (id, reduced_exprs)
+  | Fstring (str, expressions) ->
+    let (reduced_exprs) = List.map reduce_expression expressions in
+    Fstring (str, reduced_exprs)
+  
+
+;;
+  
+  
+let  rec reduce_statements = function
+  | Expression (expression, position) -> Expression (List.map reduce_expression expression, position)
+  | Print (expression, position) ->
+    Print (reduce_expression expression, position)
+  | Return (expression, position) -> Return (reduce_expression expression, position)  
+  | Let_var (id, machine_type, mutability, expressions, position) ->
+    Let_var (id, machine_type, mutability, List.map reduce_statements expressions, position)
+  | Import (id, position) -> Import (id, position)
+  | Def (scope, id, parameters, has_return, expressions, position) ->
+    Def (scope, id, parameters, has_return, List.map reduce_statements expressions, position)
+  | If_Else (condition, if_body, else_body, position) ->
+    If_Else (reduce_expression condition, List.map reduce_statements if_body, List.map reduce_statements else_body, position)
+  | While (condition, body, position) -> While (reduce_expression condition, List.map reduce_statements body, position)
+  | For (init, condition, increment, body, position) -> For (reduce_expression init, reduce_expression condition, reduce_expression increment, List.map reduce_statements body, position)
+  | Match (id, cases, position) ->
+    let reduced_cases = List.map (fun (expr, body) -> (reduce_expression expr, List.map reduce_statements body)) cases in
+    Match (id, reduced_cases, position)
+  | Reassign (id, expression, position) -> Reassign (id, reduce_expression expression, position)
+  | Enum (id, variants, position) -> Enum (id, variants, position)
+  | Struct (id, fields, position) -> Struct (id, fields, position)
 
 

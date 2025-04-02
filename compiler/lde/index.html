@@ -1,0 +1,229 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Sultanc Editor</title>
+    <style type="text/css">
+        html,
+        form,
+        body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .editor-container {
+            display: flex;
+            flex: 1 1 70%;
+            width: 100%;
+            direction: ltr;
+            background-color: #282a36;
+        }
+
+        .line-numbers {
+            width: 50px;
+            background-color: #282a36;
+            padding-left: 5px;
+            text-align: left;
+            overflow: hidden;
+            font-size: 1.5em;
+            font-family: "Courier New", monospace;
+            line-height: 1.5;
+            white-space: pre;
+            color: #98c379;
+        }
+
+        textarea {
+            width: calc(100% - 50px);
+            height: 100%;
+            font-size: 1.5em;
+            font-family: "Courier New", monospace;
+            border: none;
+            resize: none;
+            outline: none;
+            direction: rtl;
+            line-height: 1.5;
+            padding-right: 10px;
+            background-color: #282a36;
+            color: #dcdcdc;
+        }
+
+        .bottom-section {
+            flex: 1 1 30%;
+            background-color: #1c1e26;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 10px;
+        }
+
+        .content-section {
+            flex: 1;
+            overflow: auto;
+            color: #dcdcdc;
+        }
+
+        .input-section {
+            height: 15%;
+            background-color: #21232d;
+            direction: ltr;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            height: 100%;
+            background: none;
+            border: none;
+            color: #98c379;
+            padding: 10px;
+            box-sizing: border-box;
+            font-size: 1em;
+            font-family: "Courier New", monospace;
+        }
+
+        .rtl-output {
+            direction: rtl;
+            color: #dcdcdc;
+        }
+
+        .ltr-output {
+            direction: ltr;
+            color: #dcdcdc;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="editor-container">
+        <textarea id="code" name="code" oninput="updateLineNumbers()" onkeydown="handleEditorKeyDown(event)"></textarea>
+        <div id="line-numbers" class="line-numbers"></div>
+    </div>
+    <div class="bottom-section">
+        <div class="content-section" id="output"></div>
+        <div class="input-section">
+            <form id="command-form" onsubmit="sendCommand(event)">
+                <input type="text" id="command-input" placeholder="Enter commands or text here..."
+                    aria-label="Command input">
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentFile = null;
+
+        function sendCommand(event) {
+            event.preventDefault();
+            const input = document.getElementById("command-input").value.trim();
+            const output = document.getElementById("output");
+
+            if (input.startsWith("open ")) {
+                const filename = input.substring(5).trim();
+                openFile(filename);
+                output.innerHTML += `<p>&gt; ${input}</p>`;
+            } else {
+                fetch("/execute", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ command: input }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        const isArabic = /[\u0600-\u06FF]/.test(data.result);
+                        const outputClass = isArabic ? 'rtl-output' : 'ltr-output';
+
+                        output.innerHTML += `<p>&gt; ${input}</p><p class="${outputClass}">${data.result}</p>`;
+                        output.scrollTop = output.scrollHeight;
+                    })
+                    .catch(err => console.error(err));
+            }
+
+            document.getElementById("command-input").value = '';
+        }
+
+        function openFile(filename) {
+            fetch("/open", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ filename: filename }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('code').value = data.content;
+                        updateLineNumbers();
+                        currentFile = filename;
+                    } else {
+                        alert(`Error opening file: ${data.error}`);
+                    }
+                })
+                .catch(err => console.error('Error opening file:', err));
+        }
+
+        function saveFile() {
+            if (!currentFile) {
+                alert("No file is currently open. Please open or specify a file to save.");
+                return;
+            }
+            const code = document.getElementById('code').value;
+            fetch('/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ filename: currentFile, content: code }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('File saved successfully');
+                    } else {
+                        alert(`Error saving file: ${data.error}`);
+                    }
+                })
+                .catch(err => console.error('Error saving file:', err));
+        }
+
+        function updateLineNumbers() {
+            const code = document.getElementById('code');
+            const lines = code.value.split('\n');
+            const lineNumbers = document.getElementById('line-numbers');
+            lineNumbers.innerHTML = '';
+            for (let i = 1; i <= lines.length; i++) {
+                lineNumbers.innerHTML += i + '<br>';
+            }
+        }
+
+        function handleEditorKeyDown(event) {
+            // Handle Tab key for spacing
+            if (event.key === 'Tab') {
+                insertTab(event);
+            }
+            // Handle Ctrl + S or Cmd + S for saving
+            if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+                event.preventDefault();
+                saveFile();
+            }
+        }
+
+        function insertTab(event) {
+            event.preventDefault();
+            const code = document.getElementById('code');
+            const start = code.selectionStart;
+            const end = code.selectionEnd;
+            code.value = code.value.substring(0, start) + '\t' + code.value.substring(end);
+            code.selectionStart = code.selectionEnd = start + 1;
+            updateLineNumbers();
+        }
+
+        window.onload = function () {
+            updateLineNumbers();
+        };
+    </script>
+</body>
+
+</html>
