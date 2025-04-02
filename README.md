@@ -1,5 +1,5 @@
 # sultan
-A universal, multi-paradigm programming language designed for simplicity, flexibility, and efficiency, and support for writing code in any spoken language.
+A universal, multi-paradigm programming language designed for simplicity, flexibility, efficiency, and support for writing code in any spoken language.
 
 # Building Sultan lang
 Before running 
