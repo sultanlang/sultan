@@ -46,6 +46,9 @@ You will have ./sultanc
 sultan files are .sn 
 ```sh
 # use case ./sultanc <filename.sn>
-./sultanc example.sn
+./sultanc -c example.sn  -o output
+# for a test run
+./sultanc -c examples/hello/hello.sn  -o hello
+./hello
 ```
 
