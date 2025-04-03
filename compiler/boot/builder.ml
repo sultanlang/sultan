@@ -48,7 +48,7 @@ let compile_sultanc () =
     compile_file_with_progress "ocamlfind ocamlc -linkpkg -c" "castle.ml";
   
     (* Compile parser files *)
-    let menhir_command = "menhir --infer --explain sparser.mly > /dev/null 2>&1" in
+    let menhir_command = "menhir --infer sparser.mly > /dev/null 2>&1" in
     let status = Sys.command menhir_command in
     if status <> 0 then (
       Printf.printf "Failed to compile sparser.mly\n";
