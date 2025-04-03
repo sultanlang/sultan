@@ -41,10 +41,7 @@ ones thats done then run
 
 
 
-# Use Sultanc
-```sh
-cd compiler
-```
+
 You will have ./sultanc 
 sultan files are .sn 
 ```sh
