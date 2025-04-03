@@ -185,7 +185,9 @@ let string_of_print_statement = function
         with Not_found -> acc
       in
       let vars = extract_vars [] 0 in
-  
+      let vars = List.map Id.mangle_identifier vars in
+      
+      (* Check if the variables are valid *)
       (* Check each variable individually *)
       List.iter (fun var -> let _ = Castle.get_var_entry var position in ()) vars;
       
