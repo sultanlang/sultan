@@ -61,18 +61,21 @@ let __error_word__ = red ^ "ERROR:" ^ reset
 
 
 ;;
-let  __first__msg__error_ = 
+(* let  __first__msg__error_ = 
 let file_name = Castle.get_input_files () in
   match file_name with
   | [] -> " FIXME: I need to fix this.\n I can not get ;) input file provided.\n"
   | _ -> 
       let file_name = List.hd file_name in
       __error__ 
-"file" ^ file_name ^ ":\n" 
+"file" ^ file_name ^ ":\n"  *)
 
 ;;
 let __error__position__ line column token =
   let underline = under_line_token token in
-  let file_name = __first__msg__error_ in
-  __error__ "%s %s at line %d, column %d:\n%s\n%s" file_name  __error_word__ line column token underline
+  (* let file_name = __first__msg__error_ in *)
+  __error__ " %s at line %d, column %d:\n%s\n%s"   __error_word__ line column token underline
+
+;;
+
 

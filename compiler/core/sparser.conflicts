@@ -1,0 +1,482 @@
+
+** Conflict (reduce/reduce) in state 151.
+** Tokens involved: TokenWhile TokenReturn TokenPrint TokenPipe TokenMatch TokenLet TokenIf TokenFor TokenEnum TokenCloseBrace IDENTIFIER
+** The following explanations concentrate on token TokenCloseBrace.
+** This state is reached from compiler after reading:
+
+public_scope TokenDef main_or_identifier TokenOpenParenthesis parameters_declaration TokenCloseParenthesis void_handler TokenOpenBrace block_statement
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+compiler 
+sourceFile EOF 
+statements sourceFile 
+def_statement 
+public_scope TokenDef main_or_identifier TokenOpenParenthesis parameters_declaration TokenCloseParenthesis void_handler TokenOpenBrace block_of_statements TokenCloseBrace SEMICOLON // lookahead token appears
+                                                                                                                                       (?)
+
+** In state 151, looking ahead at TokenCloseBrace, reducing production
+** block_of_statements -> block_statement
+** is permitted because of the following sub-derivation:
+
+block_statement . 
+
+** In state 151, looking ahead at TokenCloseBrace, reducing production
+** block_of_statements ->
+** is permitted because of the following sub-derivation:
+
+block_statement block_of_statements // lookahead token is inherited
+                . 
+
+** Conflict (shift/reduce) in state 127.
+** Tokens involved: TokenWhile TokenReturn TokenPrint TokenMatch TokenLet TokenIf TokenFor TokenEnum IDENTIFIER
+** The following explanations concentrate on token TokenWhile.
+** This state is reached from compiler after reading:
+
+public_scope TokenDef main_or_identifier TokenOpenParenthesis parameters_declaration TokenCloseParenthesis void_handler TokenOpenBrace TokenMatch IDENTIFIER TokenWith TokenPipe expression MINUS GREATER
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+compiler 
+sourceFile EOF 
+statements sourceFile 
+def_statement 
+public_scope TokenDef main_or_identifier TokenOpenParenthesis parameters_declaration TokenCloseParenthesis void_handler TokenOpenBrace block_of_statements TokenCloseBrace SEMICOLON 
+                                                                                                                                       (?)
+
+** In state 127, looking ahead at TokenWhile, reducing production
+** block_of_statements ->
+** is permitted because of the following sub-derivation:
+
+block_statement block_of_statements // lookahead token appears because block_of_statements can begin with TokenWhile
+match_statement // lookahead token is inherited
+TokenMatch IDENTIFIER TokenWith match_cases_list // lookahead token is inherited
+                                TokenPipe match_case_list // lookahead token is inherited
+                                          expression MINUS GREATER block_of_statements // lookahead token is inherited
+                                                                   . 
+
+** In state 127, looking ahead at TokenWhile, shifting is permitted
+** because of the following sub-derivation:
+
+block_statement 
+match_statement 
+TokenMatch IDENTIFIER TokenWith match_cases_list 
+                                TokenPipe match_case_list match_cases_list 
+                                          expression MINUS GREATER block_of_statements 
+                                                                   block_statement 
+                                                                   while_statement 
+                                                                   . TokenWhile TokenOpenParenthesis expression TokenCloseParenthesis TokenOpenBrace block_of_statements TokenCloseBrace 
+
+** Conflict (shift/reduce) in state 123.
+** Token involved: TokenPipe
+** This state is reached from compiler after reading:
+
+public_scope TokenDef main_or_identifier TokenOpenParenthesis parameters_declaration TokenCloseParenthesis void_handler TokenOpenBrace TokenMatch IDENTIFIER TokenWith TokenPipe expression MINUS GREATER TokenMatch IDENTIFIER TokenWith TokenPipe match_case_list
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+compiler 
+sourceFile EOF 
+statements sourceFile 
+def_statement 
+public_scope TokenDef main_or_identifier TokenOpenParenthesis parameters_declaration TokenCloseParenthesis void_handler TokenOpenBrace block_of_statements TokenCloseBrace SEMICOLON 
+                                                                                                                                       block_statement 
+                                                                                                                                       match_statement 
+                                                                                                                                       TokenMatch IDENTIFIER TokenWith match_cases_list 
+                                                                                                                                                                       (?)
+
+** In state 123, looking ahead at TokenPipe, shifting is permitted
+** because of the following sub-derivation:
+
+TokenPipe match_case_list match_cases_list 
+          expression MINUS GREATER block_of_statements 
+                                   block_statement 
+                                   match_statement 
+                                   TokenMatch IDENTIFIER TokenWith match_cases_list 
+                                                                   TokenPipe match_case_list match_cases_list 
+                                                                                             . TokenPipe match_case_list match_cases_list 
+
+** In state 123, looking ahead at TokenPipe, reducing production
+** match_cases_list -> TokenPipe match_case_list
+** is permitted because of the following sub-derivation:
+
+TokenPipe match_case_list match_cases_list // lookahead token appears because match_cases_list can begin with TokenPipe
+          expression MINUS GREATER block_of_statements // lookahead token is inherited
+                                   block_statement // lookahead token is inherited
+                                   match_statement // lookahead token is inherited
+                                   TokenMatch IDENTIFIER TokenWith match_cases_list // lookahead token is inherited
+                                                                   TokenPipe match_case_list . 
+
+** Conflict (shift/reduce) in state 63.
+** Tokens involved: TokenEqual TokenComma TokenCloseParenthesis TokenCloseBrace TokenAnd TIMES SEMICOLON PLUS MINUS LESS GREATER DOT
+** The following explanations concentrate on token TokenEqual.
+** This state is reached from compiler after reading:
+
+TokenEnum IDENTIFIER TokenOpenBrace expression TokenComma expression
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+compiler 
+sourceFile EOF 
+statements sourceFile 
+enum_statement 
+TokenEnum IDENTIFIER TokenOpenBrace expression_list TokenCloseBrace SEMICOLON 
+                                    expression 
+                                    (?)
+
+** In state 63, looking ahead at TokenEqual, shifting is permitted
+** because of the following sub-derivation:
+
+expression TokenComma expression 
+                      expression . TokenEqual expression 
+
+** In state 63, looking ahead at TokenEqual, reducing production
+** expression -> expression TokenComma expression
+** is permitted because of the following sub-derivation:
+
+expression TokenEqual expression // lookahead token appears
+expression TokenComma expression . 
+
+** Conflict (shift/reduce) in state 56.
+** Token involved: TokenCloseParenthesis
+** This state is reached from compiler after reading:
+
+TokenEnum IDENTIFIER TokenOpenBrace IDENTIFIER TokenOpenParenthesis
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+compiler 
+sourceFile EOF 
+statements sourceFile 
+enum_statement 
+TokenEnum IDENTIFIER TokenOpenBrace expression_list TokenCloseBrace SEMICOLON 
+                                    (?)
+
+** In state 56, looking ahead at TokenCloseParenthesis, shifting is permitted
+** because of the following sub-derivation:
+
+IDENTIFIER TokenOpenParenthesis . TokenCloseParenthesis 
+
+** In state 56, looking ahead at TokenCloseParenthesis, reducing production
+** expression_list ->
+** is permitted because of the following sub-derivation:
+
+IDENTIFIER TokenOpenParenthesis expression_list TokenCloseParenthesis // lookahead token appears
+                                . 
+
+** Conflict (shift/reduce) in state 51.
+** Tokens involved: TokenEqual TokenComma TokenAnd TIMES PLUS MINUS LESS GREATER DOT
+** The following explanations concentrate on token TokenEqual.
+** This state is reached from compiler after reading:
+
+TokenEnum IDENTIFIER TokenOpenBrace TokenRange TokenOpenParenthesis expression TokenComma expression
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+compiler 
+sourceFile EOF 
+statements sourceFile 
+enum_statement 
+TokenEnum IDENTIFIER TokenOpenBrace expression_list TokenCloseBrace SEMICOLON 
+                                    expression 
+                                    (?)
+
+** In state 51, looking ahead at TokenEqual, shifting is permitted
+** because of the following sub-derivation:
+
+TokenRange TokenOpenParenthesis expression TokenComma expression TokenCloseParenthesis 
+                                                      expression . TokenEqual expression 
+
+** In state 51, looking ahead at TokenEqual, reducing production
+** expression -> expression TokenComma expression
+** is permitted because of the following sub-derivation:
+
+TokenRange TokenOpenParenthesis expression TokenComma expression TokenCloseParenthesis 
+                                expression TokenEqual expression // lookahead token appears
+                                expression TokenComma expression . 
+
+** Conflict (shift/reduce) in state 45.
+** Tokens involved: TokenComma DOT
+** The following explanations concentrate on token TokenComma.
+** This state is reached from compiler after reading:
+
+TokenEnum IDENTIFIER TokenOpenBrace expression GREATER expression
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+compiler 
+sourceFile EOF 
+statements sourceFile 
+enum_statement 
+TokenEnum IDENTIFIER TokenOpenBrace expression_list TokenCloseBrace SEMICOLON 
+                                    (?)
+
+** In state 45, looking ahead at TokenComma, reducing production
+** expression -> expression GREATER expression
+** is permitted because of the following sub-derivation:
+
+expression TokenComma expression_list // lookahead token appears
+expression GREATER expression . 
+
+** In state 45, looking ahead at TokenComma, shifting is permitted
+** because of the following sub-derivation:
+
+expression 
+expression GREATER expression 
+                   expression . TokenComma expression 
+
+** Conflict (shift/reduce) in state 43.
+** Tokens involved: TokenComma DOT
+** The following explanations concentrate on token TokenComma.
+** This state is reached from compiler after reading:
+
+TokenEnum IDENTIFIER TokenOpenBrace expression LESS expression
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+compiler 
+sourceFile EOF 
+statements sourceFile 
+enum_statement 
+TokenEnum IDENTIFIER TokenOpenBrace expression_list TokenCloseBrace SEMICOLON 
+                                    (?)
+
+** In state 43, looking ahead at TokenComma, reducing production
+** expression -> expression LESS expression
+** is permitted because of the following sub-derivation:
+
+expression TokenComma expression_list // lookahead token appears
+expression LESS expression . 
+
+** In state 43, looking ahead at TokenComma, shifting is permitted
+** because of the following sub-derivation:
+
+expression 
+expression LESS expression 
+                expression . TokenComma expression 
+
+** Conflict (shift/reduce) in state 41.
+** Tokens involved: TokenComma DOT
+** The following explanations concentrate on token TokenComma.
+** This state is reached from compiler after reading:
+
+TokenEnum IDENTIFIER TokenOpenBrace expression MINUS expression
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+compiler 
+sourceFile EOF 
+statements sourceFile 
+enum_statement 
+TokenEnum IDENTIFIER TokenOpenBrace expression_list TokenCloseBrace SEMICOLON 
+                                    (?)
+
+** In state 41, looking ahead at TokenComma, reducing production
+** expression -> expression MINUS expression
+** is permitted because of the following sub-derivation:
+
+expression TokenComma expression_list // lookahead token appears
+expression MINUS expression . 
+
+** In state 41, looking ahead at TokenComma, shifting is permitted
+** because of the following sub-derivation:
+
+expression 
+expression MINUS expression 
+                 expression . TokenComma expression 
+
+** Conflict (shift/reduce) in state 39.
+** Tokens involved: TokenComma DOT
+** The following explanations concentrate on token TokenComma.
+** This state is reached from compiler after reading:
+
+TokenEnum IDENTIFIER TokenOpenBrace expression PLUS expression
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+compiler 
+sourceFile EOF 
+statements sourceFile 
+enum_statement 
+TokenEnum IDENTIFIER TokenOpenBrace expression_list TokenCloseBrace SEMICOLON 
+                                    (?)
+
+** In state 39, looking ahead at TokenComma, reducing production
+** expression -> expression PLUS expression
+** is permitted because of the following sub-derivation:
+
+expression TokenComma expression_list // lookahead token appears
+expression PLUS expression . 
+
+** In state 39, looking ahead at TokenComma, shifting is permitted
+** because of the following sub-derivation:
+
+expression 
+expression PLUS expression 
+                expression . TokenComma expression 
+
+** Conflict (shift/reduce) in state 37.
+** Tokens involved: TokenEqual TokenComma TokenAnd TIMES PLUS MINUS LESS GREATER DOT
+** The following explanations concentrate on token TokenEqual.
+** This state is reached from compiler after reading:
+
+TokenEnum IDENTIFIER TokenOpenBrace expression DOT expression
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+compiler 
+sourceFile EOF 
+statements sourceFile 
+enum_statement 
+TokenEnum IDENTIFIER TokenOpenBrace expression_list TokenCloseBrace SEMICOLON 
+                                    expression 
+                                    (?)
+
+** In state 37, looking ahead at TokenEqual, reducing production
+** expression -> expression DOT expression
+** is permitted because of the following sub-derivation:
+
+expression TokenEqual expression // lookahead token appears
+expression DOT expression . 
+
+** In state 37, looking ahead at TokenEqual, shifting is permitted
+** because of the following sub-derivation:
+
+expression DOT expression 
+               expression . TokenEqual expression 
+
+** Conflict (shift/reduce) in state 35.
+** Tokens involved: TokenComma DOT
+** The following explanations concentrate on token TokenComma.
+** This state is reached from compiler after reading:
+
+TokenEnum IDENTIFIER TokenOpenBrace expression TIMES expression
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+compiler 
+sourceFile EOF 
+statements sourceFile 
+enum_statement 
+TokenEnum IDENTIFIER TokenOpenBrace expression_list TokenCloseBrace SEMICOLON 
+                                    (?)
+
+** In state 35, looking ahead at TokenComma, reducing production
+** expression -> expression TIMES expression
+** is permitted because of the following sub-derivation:
+
+expression TokenComma expression_list // lookahead token appears
+expression TIMES expression . 
+
+** In state 35, looking ahead at TokenComma, shifting is permitted
+** because of the following sub-derivation:
+
+expression 
+expression TIMES expression 
+                 expression . TokenComma expression 
+
+** Conflict (shift/reduce) in state 33.
+** Tokens involved: TokenComma DOT
+** The following explanations concentrate on token TokenComma.
+** This state is reached from compiler after reading:
+
+TokenEnum IDENTIFIER TokenOpenBrace expression TokenAnd expression
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+compiler 
+sourceFile EOF 
+statements sourceFile 
+enum_statement 
+TokenEnum IDENTIFIER TokenOpenBrace expression_list TokenCloseBrace SEMICOLON 
+                                    (?)
+
+** In state 33, looking ahead at TokenComma, reducing production
+** expression -> expression TokenAnd expression
+** is permitted because of the following sub-derivation:
+
+expression TokenComma expression_list // lookahead token appears
+expression TokenAnd expression . 
+
+** In state 33, looking ahead at TokenComma, shifting is permitted
+** because of the following sub-derivation:
+
+expression 
+expression TokenAnd expression 
+                    expression . TokenComma expression 
+
+** Conflict (shift/reduce) in state 31.
+** Tokens involved: TokenEqual TokenComma TokenAnd TIMES PLUS MINUS LESS GREATER DOT
+** The following explanations concentrate on token TokenEqual.
+** This state is reached from compiler after reading:
+
+TokenEnum IDENTIFIER TokenOpenBrace TokenOpenParenthesis expression TokenComma expression
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+compiler 
+sourceFile EOF 
+statements sourceFile 
+enum_statement 
+TokenEnum IDENTIFIER TokenOpenBrace expression_list TokenCloseBrace SEMICOLON 
+                                    expression 
+                                    TokenOpenParenthesis expression TokenCloseParenthesis 
+                                                         (?)
+
+** In state 31, looking ahead at TokenEqual, shifting is permitted
+** because of the following sub-derivation:
+
+expression TokenComma expression 
+                      expression . TokenEqual expression 
+
+** In state 31, looking ahead at TokenEqual, reducing production
+** expression -> expression TokenComma expression
+** is permitted because of the following sub-derivation:
+
+expression TokenEqual expression // lookahead token appears
+expression TokenComma expression . 
+
+** Conflict (shift/reduce) in state 29.
+** Tokens involved: TokenComma DOT
+** The following explanations concentrate on token TokenComma.
+** This state is reached from compiler after reading:
+
+TokenEnum IDENTIFIER TokenOpenBrace expression TokenEqual expression
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+compiler 
+sourceFile EOF 
+statements sourceFile 
+enum_statement 
+TokenEnum IDENTIFIER TokenOpenBrace expression_list TokenCloseBrace SEMICOLON 
+                                    (?)
+
+** In state 29, looking ahead at TokenComma, reducing production
+** expression -> expression TokenEqual expression
+** is permitted because of the following sub-derivation:
+
+expression TokenComma expression_list // lookahead token appears
+expression TokenEqual expression . 
+
+** In state 29, looking ahead at TokenComma, shifting is permitted
+** because of the following sub-derivation:
+
+expression 
+expression TokenEqual expression 
+                      expression . TokenComma expression 

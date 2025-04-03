@@ -1,51 +1,35 @@
-open Error
+
 open Errorlog
 type sultanc 
 
-type 'sultanc init = 
-| Compiler of bool
 
-let flag_compiler = Compiler false
 
-let compiler starter_bool = 
-  if starter_bool = true then
-    Compiler true
-  else
-    Compiler false
-  ;;
 let start_sultanc lexer_buffer =
   Sparser.compiler Slexer.token lexer_buffer
 
 ;;
-let __Sultanc__ starter_bool input_files verbose = 
-    let check_flag = compiler starter_bool in 
-      match check_flag with
-      | Compiler false -> __error__ "Compiler flag not set"
-      | Compiler true ->
-      let start_sultanc = start_sultanc in
-        try
-          if verbose then
-            Printf.printf "Parsing file: %s\n" (Lexing.lexeme_start_p input_files).pos_fname;
-          start_sultanc input_files
-        with
-        | exn -> Errorlog.catch_error input_files exn
-
+let __Sultanc__ starter_bool input_files = 
+    let start_sultanc = start_sultanc in
+      try
+        start_sultanc input_files
+      with
+      | exn -> Errorlog.catch_error input_files exn
 
       ;;
-let analyze_args args = 
+(* let analyze_args args = 
   let (output_name, input_files, verbose) = Flags.finder (Array.to_list args) in 
 
   (input_files, verbose)
-;;
+;; *)
 
-let sbase inputs verbose =
+let sbase inputs =
   let lexer_buffer = Lexing.from_channel (open_in inputs) in
-  __Sultanc__ true lexer_buffer verbose
+  __Sultanc__ true lexer_buffer 
 
 
 
 ;;
-
+(* 
 let sbase_compiler input = 
   let (files, verbose) = analyze_args input in
   
@@ -81,3 +65,23 @@ let sbase_compiler input =
       
       ast
 ;;
+ *)
+
+let sbase_compiler input =
+  (* Call sbase with the required argument to get the AST *)
+  let ast = sbase input  in 
+  
+  (* Store handler should generate the C file *)
+  let _ = Codegen.to_string input ast in
+  let _ = Hfile.generate_h_file input ast in
+  
+  (* Return the AST *)
+  ast
+
+(* 
+let compiler file_names =
+  Printf.printf "compiling";
+  let input = open_in file_names in
+  let file_content = really_input_string input (in_channel_length input) in
+  close_in input;
+  let lexbuf = Lexing.from_string file_content in *)

@@ -99,13 +99,13 @@ type sultanc_types =
 
 type expression = 
   | Types of sultanc_types
-  | Identifier of string
+  | Identifier of string* position
   | Binary of expression list * binary_operator
   (* | NameSpace of string * expression *)
   | Function_call of string * expression list
   | Lists of expression list
   | Range of expression * expression
-  | Fstring of string * expression list
+  | Fstring of string * expression list * position
   
 ;;
   
@@ -135,72 +135,11 @@ type statements =
 
 | Match of string * (expression * statements list) list * position
 (* | Match of string * (expression * statements list) list * position *)
-| Reassign of string * expression * position
+| Reassign of string * expression list * position
 | Enum of string * statements list * position
+(* | Enum of string * (string * machine_types* mutability) option list  * position *)
 | Struct of string * (string * machine_types) list * position
 
   
   
 ;;
-
-
-
-
-
-let reduce_scope = function
-  | Global n -> n
-  | Local n -> n
-;;
-
-
-let rec reduce_sultanc_types = function 
-  | StringLiteral s -> StringLiteral s
-  | CharLiteral c -> CharLiteral c
-  | IntLiteral i -> IntLiteral i
-  | FloatLiteral f -> FloatLiteral f
-  | BoolLiteral b -> BoolLiteral b
-  (* | ListLiteral lst -> ListLiteral (List.map reduce_sultanc_types lst) *)
-;;
-
-let rec reduce_expression = function
-  | Lists expressions -> Lists (List.map reduce_expression expressions)
-  | Range (start, end_) ->
-    Range (reduce_expression start, reduce_expression end_)
-  | Identifier id -> Identifier id
-  | Binary (expressions, operations) ->
-    let reduced_exprs = List.map reduce_expression expressions in
-    Binary (reduced_exprs, operations)
-  | Types sultanc_type -> Types (reduce_sultanc_types sultanc_type)
-  | Function_call (id, expressions) ->
-    let reduced_exprs = List.map reduce_expression expressions in
-    Function_call (id, reduced_exprs)
-  | Fstring (str, expressions) ->
-    let (reduced_exprs) = List.map reduce_expression expressions in
-    Fstring (str, reduced_exprs)
-  
-
-;;
-  
-  
-let  rec reduce_statements = function
-  | Expression (expression, position) -> Expression (List.map reduce_expression expression, position)
-  | Print (expression, position) ->
-    Print (reduce_expression expression, position)
-  | Return (expression, position) -> Return (reduce_expression expression, position)  
-  | Let_var (id, machine_type, mutability, expressions, position) ->
-    Let_var (id, machine_type, mutability, List.map reduce_statements expressions, position)
-  | Import (id, position) -> Import (id, position)
-  | Def (scope, id, parameters, has_return, expressions, position) ->
-    Def (scope, id, parameters, has_return, List.map reduce_statements expressions, position)
-  | If_Else (condition, if_body, else_body, position) ->
-    If_Else (reduce_expression condition, List.map reduce_statements if_body, List.map reduce_statements else_body, position)
-  | While (condition, body, position) -> While (reduce_expression condition, List.map reduce_statements body, position)
-  | For (init, condition, increment, body, position) -> For (reduce_expression init, reduce_expression condition, reduce_expression increment, List.map reduce_statements body, position)
-  | Match (id, cases, position) ->
-    let reduced_cases = List.map (fun (expr, body) -> (reduce_expression expr, List.map reduce_statements body)) cases in
-    Match (id, reduced_cases, position)
-  | Reassign (id, expression, position) -> Reassign (id, reduce_expression expression, position)
-  | Enum (id, variants, position) -> Enum (id, variants, position)
-  | Struct (id, fields, position) -> Struct (id, fields, position)
-
-

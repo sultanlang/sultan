@@ -14,30 +14,25 @@ let h_file_h = "_H"
 
 
 let rec h_file_statements = function
-  | Ast.Def (scope, function_name, function_parameters, function_type, body, position) ->
-      let parameters_str = string_of_ast_parameters function_parameters in
-      let string_of_scope = string_of_scope scope in
-      let function_signature = match function_type with
-        | Ast.Has_return Ast.True ->
-            string_of_scope ^ "int " ^ function_name ^ "(" ^ parameters_str ^ ")"
-        | Ast.Has_return Ast.False ->
-            string_of_scope ^ "void " ^ function_name ^ "(" ^ parameters_str ^ ")"
-      in
-      function_signature ^ ";\n"
+| Ast.Def (scope, function_name, function_parameters, function_type, _, position) ->
+  (* Get base function signature from semantics *)
+  let function_signature = Semantics.string_of_def_base 
+    (Ast.Def(scope, function_name, function_parameters, function_type, [], position)) in
+  (* Add semicolon for header declaration *)
+  function_signature ^ ";\n"
   
-  | Ast.Enum (enum_name, enum_values, position) ->
-      let reduced_statements = [Ast.reduce_statements (Ast.Enum (enum_name, enum_values, position))] in
-      let string_list = List.map h_file_statements reduced_statements in
-      String.concat "\n" string_list ^ "\n"
-      
-  | Ast.Struct (struct_name, struct_fields, position) ->
-      let reduced_statements = [Ast.reduce_statements (Ast.Struct (struct_name, struct_fields, position))] in
-      let string_list = List.map h_file_statements reduced_statements in
-      String.concat "\n" string_list ^ "\n"
-      
-  | Ast.Import (import_name, position) ->
-      let import_str = h_file_include ^ "\"" ^ import_name ^ "\"" in
-      import_str ^ "\n"
+      | Ast.Enum (enum_name, enum_values, position) ->
+        let enum_str = Semantics.string_of_enum_statement (Ast.Enum (enum_name, enum_values, position)) in
+        enum_str ^ "\n"
+        
+    | Ast.Struct (struct_name, struct_fields, position) ->
+        let struct_str = Semantics.string_of_struct_statement (Ast.Struct (struct_name, struct_fields, position)) in
+        struct_str ^ "\n"
+        
+      | Ast.Import (module_name, position) ->
+        (* Use Semantics.string_of_import to generate the string representation *)
+        let include_directive = Semantics.string_of_import (Ast.Import (module_name, position)) in
+        include_directive ^ "\n"
     
   | _ -> ""
 let construct_header_gurade file_name =

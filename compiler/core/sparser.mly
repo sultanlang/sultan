@@ -169,7 +169,7 @@ for_statement:
   | TokenFor IDENTIFIER TokenIn expression TokenOpenBrace block_of_statements TokenCloseBrace
     { 
       let pos = get_position $startpos in
-      Ast.For(Ast.Identifier($2), $4, Ast.Identifier($2), $6,pos) }
+      Ast.For(Ast.Identifier($2,pos), $4, Ast.Identifier($2,pos), $6,pos) }
 
 
 
@@ -180,16 +180,13 @@ for_statement:
 
 /* Refactored match_cases_list and match_case_list */
 match_case_list:
-  | expression MINUS GREATER match_statements { ($1, $4) }
+  | expression MINUS GREATER block_of_statements { ($1, $4) }
 
 match_cases_list:
   | TokenPipe match_case_list match_cases_list { $2 :: $3 } /* Recursive case */
   | TokenPipe match_case_list { [$2] }                     /* Single case */
 
 /* Restrict match_statements to avoid conflicts */
-match_statements:
-  | block_statement match_statements { $1 :: $2 } /* Recursive case */
-  | block_statement { [$1] }                     /* Single case */
 
 /* Ensure match_statement is distinct */
 match_statement:
@@ -242,15 +239,17 @@ let_statement:
       
       
       }
-  | TokenLet IDENTIFIER TokenEqual expression_list SEMICOLON 
+  // | TokenLet IDENTIFIER TokenEqual block_of_statements SEMICOLON 
+  //   {
+  //     let pos = get_position $startpos in
+  //     Ast.Let_var($2, Ast.None, Ast.Mutable, $4, pos) 
+  //   }
+  | TokenLet IDENTIFIER TokenColon TokenEqual expression_list SEMICOLON 
     {
       let pos = get_position $startpos in
-      Ast.Let_var($2, Ast.None, Ast.Mutable, $4, pos) 
-    }
-  | TokenLet IDENTIFIER TokenEqual block_of_statements SEMICOLON 
-    {
-      let pos = get_position $startpos in
-      Ast.Let_var($2, Ast.None, Ast.Mutable, $4, pos) 
+      match $5 with
+      | [Ast.Expression(expr_list, pos)] -> Ast.Reassign($2, expr_list, pos)
+      | _ -> Error.__error__ "Invalid expression for reassignment"
     }
 
 
@@ -270,7 +269,7 @@ mutability:
 types:
   | types_declaration { $1 }
   | types_declaration TokenList { Ast.List($1) }
-  | { Ast.None } /* Allow empty type declaration to default to Void */
+  
 
 types_declaration:
   | TokenI8 { Ast.I8 }
@@ -290,10 +289,29 @@ types_declaration:
   
   
   
-  
+// enum_variant:
+//   | IDENTIFIER { Some ($1, Ast.None, Ast.Mutable) }  /* Default to Void type and Mutable */
+//   | IDENTIFIER TokenColon types mutability
+//   {
+//       let pos = get_position $startpos in
+//       Some ($1, $3, $4)
+//   }
+//   | IDENTIFIER TokenColon types mutability TokenEqual expression_list
+//   {
+//       let pos = get_position $startpos in
+//       Some ($1, $3, $4)
+//   }
 
+// enum_variants:
+//   | enum_variant { [$1] }
+//   | enum_variant SEMICOLON enum_variants { $1 :: $3 }
+//   | { [] }
 
-
+// enum_statement:
+//   | TokenEnum IDENTIFIER TokenOpenBrace enum_variants TokenCloseBrace SEMICOLON {
+//       let pos = get_position $startpos in
+//       Ast.Enum($2, $4, pos)
+//     }
 
 
 
@@ -349,15 +367,15 @@ void_handler:
   | { Ast.Has_return Ast.True }
 
 main_or_identifier:
-  | TokenMain { Ast.Identifier("main") }  // Wrap "main" in an Ast.Identifier
-  | IDENTIFIER { Ast.Identifier($1) }    // Wrap IDENTIFIER in an Ast.Identifier
+  | TokenMain {let pos = get_position $startpos in Ast.Identifier("main",pos) }  // Wrap "main" in an Ast.Identifier
+  | IDENTIFIER { let pos = get_position $startpos in Ast.Identifier($1,pos) }   // Wrap IDENTIFIER in an Ast.Identifier
 
 def_statement:
   | public_scope TokenDef main_or_identifier TokenOpenParenthesis parameters_declaration TokenCloseParenthesis void_handler TokenOpenBrace block_of_statements TokenCloseBrace SEMICOLON
   {
     let pos = get_position $startpos in
     let identifier = match $3 with
-      | Ast.Identifier id -> id
+      | Ast.Identifier (id,pos) -> id
       | _ -> failwith "Expected identifier"
     in
      
@@ -387,18 +405,21 @@ print_statement:
     {
       let pos = get_position $startpos in
       match $4 with
-      | Ast.Types (Ast.StringLiteral str) -> Ast.Print(Ast.Fstring(str, []),pos)
+      | Ast.Types (Ast.StringLiteral str) -> Ast.Print(Ast.Fstring(str, [],pos),pos)
       | _ -> Error.__error__ "Only string literals are allowed in f-string print statements"
     }
+
+    
 expression:
   | IntLiteral { Ast.Types (IntLiteral $1) }
   | FloatLiteral { Ast.Types (FloatLiteral $1) }
   | StringLiteral { Ast.Types (StringLiteral $1) }
   | CharLiteral { Ast.Types (CharLiteral $1) }
-  | IDENTIFIER { Ast.Identifier($1) }
+  | IDENTIFIER { let pos = get_position $startpos in Ast.Identifier($1,pos) }
   | expression PLUS expression { Ast.Binary([$1; $3], Add) }
   | expression MINUS expression { Ast.Binary([$1; $3], Subtract) }
   | expression TIMES expression { Ast.Binary([$1; $3], Multiply) }
+  | expression DOT expression { Ast.Binary([$1; $3], Dot) }
   
   | expression TokenEqual expression { Ast.Binary([$1; $3], Equal) }
   | expression GREATER expression { Ast.Binary([$1; $3], Greater_than) }

@@ -1,129 +1,76 @@
-open Error
-(* Add Castle module import *)
-open Castle
+type flag =
+  | Help
+  | Version
+  | InputFile of string
+  | OutputFile of string
+  | CompileOnly  (* -c flag *)
+  | LinkerPath of string  (* -L <path> *)
+  | LinkLibrary of string  (* -l <library> *)
+  | Unrecognized of string
 
-type flags 
-
-let flagger = "-"
-let output_flag = flagger^"o"
-let verbose_flag = flagger^"v"
-let help_flag = flagger^"h"
-let version_flag = flagger^"version"
-let linker_flag = flagger^"l"
-(* Removed duplicate verbose_flag declaration *)
-let library_flag = flagger^flagger^"lib"
-let binary_flag = flagger^flagger^"bin"
+type compilations_types =
+  | Executable of string
+  | Shared of string
+  | Object of string
+  | LibraryPath of string
+  | Library of string
 
 
-type 'flags flag = 
-  | Output_name 
-  | Verbose of bool
-  | Help of bool
-  | Version of bool
-  | Linker of string
 
-type inputs_commands = 
-  | Inputs of string array
-  | Input_error
 
-let input_reader inputs = function
-| Inputs (input_files) -> 
-  let _ = Array.iter (fun x -> inputs := !inputs@[x]) input_files in
-  !inputs
-| Input_error -> Error.__error__ "Invalid input"
-  
-let find_output_name args = 
-  let rec find_output_name' = function
-  | [] -> None
-  | x::xs -> 
-    if x = output_flag then
-      match xs with
-      | [] -> None
-      | y::_ys -> Some y
-    else
-      find_output_name' xs
-  in
-  find_output_name' args
+(* Function to process flags *)
+let process_flag flags =
+  List.iter (function
+    | Help ->
+        Printf.printf "Usage: compiler [options] <input files>\nOptions:\n";
+        Printf.printf "  -c                   Compile only (generate object files)\n";
+        (* ... other help text ... *)
+    | Version ->
+        Printf.printf "Compiler version 1.0.0\n"
+    | InputFile file ->
+        Castle.add_input_file file  (* Use Castle's adder directly *)
+    | OutputFile file ->
+        Castle.set_output_path file
+    | CompileOnly ->
+        Castle.set_compile_only true
+    | LinkerPath path ->
+        Castle.add_linker_path path
+    | LinkLibrary lib ->
+        Castle.add_library lib
+    | Unrecognized flag ->
+       Log.__message__ ("Unrecognized flag: " ^ flag) 2;
+       exit 1
 
-let find_verbose args =
-  let rec find_verbose' = function
-  | [] -> false
-  | x::xs -> 
-    if x = verbose_flag then
-      true
-    else
-      find_verbose' xs
-  in
-  find_verbose' args
+  ) flags;
 
-let is_flag str =
-  String.length str > 0 && str.[0] = '-'
+  (* Debug output to verify the processed flags *)
+  Printf.printf "Processed flags:\n";
+  Printf.printf "  Input files: %s\n" (String.concat ", " (Castle.get_input_files ()));
+  Printf.printf "  Output file: %s\n" 
+    (match Castle.get_output_file () with Some f -> f | None -> "");
+  Printf.printf "  Compile only: %b\n" (Castle.is_compile_only ());
+  Printf.printf "  Linker paths: %s\n" (String.concat ", " (Castle.get_linker_paths ()));
+  Printf.printf "  Libraries: %s\n" (String.concat ", " (Castle.get_libraries ()))
+(* Function to parse arguments into flags *)
 
-let is_input_file filename =
-  Filename.check_suffix filename ".sn" && not (is_flag filename)
 
-let find_input_files args = 
-  let rec find_input_files' acc = function
-  | [] -> List.rev acc
-  | x::xs -> 
-    if x = output_flag then
-      (* Skip the flag and its argument *)
-      (match xs with
-      | [] -> find_input_files' acc []
-      | _::ys -> find_input_files' acc ys)
-    else if is_flag x then
-      (* Skip other flags *)
-      find_input_files' acc xs
-    else if is_input_file x then
-      (* Found an input file *)
-      find_input_files' (x::acc) xs
-    else
-      (* Not a flag or input file, continue *)
-      find_input_files' acc xs
-  in
-  let files = find_input_files' [] args in
-  (* Debug output to see what files were found *)
-  Printf.printf "Debug: Getting input files: %s\n" 
-    (String.concat ", " files);
-  files
-
-let finder args =
-  let output_name = find_output_name args in
-  let verbose = find_verbose args in
-  let input_files = find_input_files args in
-  
-  (* Set input files immediately *)
-  Castle.set_input_file input_files;
-  
-  (* Set other values *)
-  Castle.set_output_name output_name;
-  Castle.set_verbose verbose;
-  
-  Printf.printf "Debug: Retrieved input files: %s\n" 
-    (String.concat ", " input_files);
-  
-  (* Return the original tuple for backwards compatibility *)
-  (output_name, input_files, verbose)
-;;
-
-let rec flags_args args flags = 
+(* Function to parse arguments into flags *)
+let rec flag_args' args flags =
   match args with
   | [] -> flags
-  | x::xs -> 
-    match x with
-    | "-o" -> 
-      begin
-        match xs with
-        | [] -> flags
-        | y::ys -> flags_args ys (Output_name::flags)
-      end
-    | "-v" -> flags_args xs (Verbose true::flags)
-    | "-h" -> flags_args xs (Help true::flags)
-    | "-version" -> flags_args xs (Version true::flags)
-    | "-l" -> 
-      begin
-        match xs with
-        | [] -> flags
-        | y::ys -> flags_args ys (Linker y::flags)
-      end
-    | _ -> flags_args xs flags
+  | "-c" :: tl -> flag_args' tl (CompileOnly :: flags)
+  | "-o" :: file :: tl -> flag_args' tl (OutputFile file :: flags)
+  | "-L" :: path :: tl -> flag_args' tl (LinkerPath path :: flags)
+  | "-l" :: lib :: tl -> flag_args' tl (LinkLibrary lib :: flags)
+  | "--help" :: tl -> flag_args' tl (Help :: flags)
+  | "--version" :: tl -> flag_args' tl (Version :: flags)
+  | arg :: tl when String.length arg > 2 && String.sub arg 0 2 = "-L" ->
+      let path = String.sub arg 2 (String.length arg - 2) in
+      flag_args' tl (LinkerPath path :: flags)
+  | arg :: tl when String.length arg > 2 && String.sub arg 0 2 = "-l" ->
+      let lib = String.sub arg 2 (String.length arg - 2) in
+      flag_args' tl (LinkLibrary lib :: flags)
+  | arg :: tl when String.get arg 0 <> '-' -> flag_args' tl (InputFile arg :: flags)
+  | arg :: tl -> flag_args' tl (Unrecognized arg :: flags)
+
+let flag_args args = flag_args' args []
